@@ -30,7 +30,7 @@ namespace Hangfire.Server
     public class PerformContext
     {
         public PerformContext([NotNull] PerformContext context)
-            : this(context.Storage, context.Connection, context.BackgroundJob, context.CancellationToken, context.Profiler)
+            : this(context.Storage, context.Connection, context.BackgroundJob, context.CancellationToken, context.Performer, context.Profiler)
         {
             Items = context.Items;
         }
@@ -49,7 +49,17 @@ namespace Hangfire.Server
             [NotNull] IStorageConnection connection, 
             [NotNull] BackgroundJob backgroundJob,
             [NotNull] IJobCancellationToken cancellationToken)
-            : this(storage, connection, backgroundJob, cancellationToken, EmptyProfiler.Instance)
+            : this(storage, connection, backgroundJob, cancellationToken, null, EmptyProfiler.Instance)
+        {
+        }
+
+        public PerformContext(
+            [CanBeNull] JobStorage storage,
+            [NotNull] IStorageConnection connection,
+            [NotNull] BackgroundJob backgroundJob,
+            [CanBeNull] IBackgroundJobPerformer performer,
+            [NotNull] IJobCancellationToken cancellationToken)
+            : this(storage, connection, backgroundJob, cancellationToken, performer, EmptyProfiler.Instance)
         {
         }
 
@@ -58,6 +68,7 @@ namespace Hangfire.Server
             [NotNull] IStorageConnection connection, 
             [NotNull] BackgroundJob backgroundJob,
             [NotNull] IJobCancellationToken cancellationToken,
+            [CanBeNull] IBackgroundJobPerformer performer,
             [NotNull] IProfiler profiler)
         {
             if (connection == null) throw new ArgumentNullException(nameof(connection));
@@ -69,6 +80,7 @@ namespace Hangfire.Server
             Connection = connection;
             BackgroundJob = backgroundJob;
             CancellationToken = cancellationToken;
+            Performer = performer;
             Profiler = profiler;
 
             Items = new Dictionary<string, object>();
@@ -102,7 +114,10 @@ namespace Hangfire.Server
 
         [NotNull]
         public IStorageConnection Connection { get; }
-        
+
+        [CanBeNull]
+        public IBackgroundJobPerformer Performer { get; set; }
+
         [NotNull]
         internal IProfiler Profiler { get; }
 
