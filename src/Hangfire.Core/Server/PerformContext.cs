@@ -98,7 +98,7 @@ namespace Hangfire.Server
         public IDictionary<string, object> Items { get; }
 
         [NotNull]
-        public BackgroundJob BackgroundJob { get; }
+        public BackgroundJob BackgroundJob { get; set; }
 
         [Obsolete("Please use BackgroundJob property instead. Will be removed in 2.0.0.")]
         public string JobId => BackgroundJob.Id;
