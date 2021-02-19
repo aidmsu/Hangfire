@@ -32,6 +32,9 @@ namespace Hangfire.Client
         [NotNull]
         IStateMachine StateMachine { get; }
 
+        [NotNull]
+        IBackgroundJobStateChanger StateChanger { get; }
+
         /// <summary>
         /// Runs the process of job creation with the specified context.
         /// </summary>

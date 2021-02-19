@@ -17,15 +17,18 @@ namespace Hangfire.Core.Tests.Client
     {
         private const string JobId = "jobId";
         private readonly Mock<IStateMachine> _stateMachine;
+        private readonly Mock<IBackgroundJobStateChanger> _stateChanger;
         private readonly CreateContextMock _context;
         private readonly Mock<IWriteOnlyTransaction> _transaction;
 
         public CoreBackgroundJobFactoryFacts()
         {
             _stateMachine = new Mock<IStateMachine>();
+            _stateChanger = new Mock<IBackgroundJobStateChanger>();
             _context = new CreateContextMock();
             _transaction = new Mock<IWriteOnlyTransaction>();
-
+            
+            _stateChanger.Setup(x => x.StateMachine).Returns(_stateMachine.Object);
             _context.Connection.Setup(x => x.CreateExpiredJob(
                 It.IsAny<Job>(),
                 It.IsAny<IDictionary<string, string>>(),
@@ -285,7 +288,7 @@ namespace Hangfire.Core.Tests.Client
 
         private CoreBackgroundJobFactory CreateFactory(int? retries = null)
         {
-            var factory = new CoreBackgroundJobFactory(_stateMachine.Object);
+            var factory = new CoreBackgroundJobFactory(_stateChanger.Object);
             if (retries.HasValue) factory.RetryAttempts = retries.Value;
 
             return factory;

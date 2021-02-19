@@ -28,7 +28,7 @@ namespace Hangfire.States
         public ApplyStateContext(
             [NotNull] IWriteOnlyTransaction transaction, 
             [NotNull] ElectStateContext context)
-            : this(context.Storage, context.Connection, transaction, context.BackgroundJob, context.CandidateState, context.CurrentState, context.Profiler)
+            : this(context.Storage, context.Connection, transaction, context.StateChanger, context.BackgroundJob, context.CandidateState, context.CurrentState, context.Profiler)
         {
         }
 
@@ -36,10 +36,11 @@ namespace Hangfire.States
             [NotNull] JobStorage storage,
             [NotNull] IStorageConnection connection,
             [NotNull] IWriteOnlyTransaction transaction,
+            [NotNull] IBackgroundJobStateChanger stateChanger,
             [NotNull] BackgroundJob backgroundJob,
             [NotNull] IState newState,
             [CanBeNull] string oldStateName)
-            : this(storage, connection, transaction, backgroundJob, newState, oldStateName, EmptyProfiler.Instance)
+            : this(storage, connection, transaction, stateChanger, backgroundJob, newState, oldStateName, EmptyProfiler.Instance)
         {
         }
 
@@ -47,6 +48,7 @@ namespace Hangfire.States
             [NotNull] JobStorage storage,
             [NotNull] IStorageConnection connection,
             [NotNull] IWriteOnlyTransaction transaction,
+            [NotNull] IBackgroundJobStateChanger stateChanger,
             [NotNull] BackgroundJob backgroundJob,
             [NotNull] IState newState, 
             [CanBeNull] string oldStateName,
@@ -63,6 +65,7 @@ namespace Hangfire.States
             Storage = storage;
             Connection = connection;
             Transaction = transaction;
+            StateChanger = stateChanger;
             OldStateName = oldStateName;
             NewState = newState;
             JobExpirationTimeout = storage.JobExpirationTimeout;
@@ -77,6 +80,9 @@ namespace Hangfire.States
 
         [NotNull]
         public IWriteOnlyTransaction Transaction { get; }
+
+        [NotNull]
+        public IBackgroundJobStateChanger StateChanger { get; set; }
         
         public override BackgroundJob BackgroundJob { get; }
 

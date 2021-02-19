@@ -27,6 +27,7 @@ namespace Hangfire.Core.Tests.Server
         private readonly BackgroundProcessContextMock _context;
         private readonly Mock<IBackgroundJobFactory> _factory;
         private readonly Mock<IStateMachine> _stateMachine;
+        private readonly Mock<IBackgroundJobStateChanger> _stateChanger;
         private readonly BackgroundJobMock _backgroundJobMock;
 
         private static readonly string _expressionString = "* * * * *";
@@ -82,6 +83,7 @@ namespace Hangfire.Core.Tests.Server
 
             _connection.Setup(x => x.CreateWriteTransaction()).Returns(_transaction.Object);
 
+            _stateChanger = new Mock<IBackgroundJobStateChanger>();
             _backgroundJobMock = new BackgroundJobMock();
 
             _factory = new Mock<IBackgroundJobFactory>();
@@ -96,7 +98,7 @@ namespace Hangfire.Core.Tests.Server
         {
             var exception = Assert.Throws<ArgumentNullException>(
 // ReSharper disable once AssignNullToNotNullAttribute
-                () => new RecurringJobScheduler(null, _delay, _timeZoneResolver.Object, _nowInstantFactory));
+                () => new RecurringJobScheduler(null, _delay, _stateChanger.Object, _timeZoneResolver.Object, _nowInstantFactory));
 
             Assert.Equal("factory", exception.ParamName);
         }
@@ -106,7 +108,7 @@ namespace Hangfire.Core.Tests.Server
         {
             var exception = Assert.Throws<ArgumentNullException>(
                 // ReSharper disable once AssignNullToNotNullAttribute
-                () => new RecurringJobScheduler(_factory.Object, _delay, null, _nowInstantFactory));
+                () => new RecurringJobScheduler(_factory.Object, _delay, _stateChanger.Object, null, _nowInstantFactory));
 
             Assert.Equal("timeZoneResolver", exception.ParamName);
         }
@@ -116,7 +118,7 @@ namespace Hangfire.Core.Tests.Server
         {
             var exception = Assert.Throws<ArgumentNullException>(
                 // ReSharper disable once AssignNullToNotNullAttribute
-                () => new RecurringJobScheduler(_factory.Object, _delay, _timeZoneResolver.Object, null));
+                () => new RecurringJobScheduler(_factory.Object, _delay, _stateChanger.Object, _timeZoneResolver.Object, null));
 
             Assert.Equal("nowFactory", exception.ParamName);
         }
@@ -1103,6 +1105,7 @@ namespace Hangfire.Core.Tests.Server
             var scheduler = new RecurringJobScheduler(
                 _factory.Object,
                 _delay,
+                _stateChanger.Object,
                 _timeZoneResolver.Object,
                 _nowInstantFactory);
 

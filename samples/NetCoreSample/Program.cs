@@ -81,6 +81,8 @@ namespace NetCoreSample
 
         public IStateMachine StateMachine => _inner.StateMachine;
 
+        public IBackgroundJobStateChanger StateChanger => _inner.StateChanger;
+
         public BackgroundJob Create(CreateContext context)
         {
             Console.WriteLine($"Create: {context.Job.Type.FullName}.{context.Job.Method.Name} in {context.InitialState?.Name} state");
@@ -118,6 +120,8 @@ namespace NetCoreSample
             Console.WriteLine($"ChangeState {context.BackgroundJobId} to {context.NewState}");
             return _inner.ChangeState(context);
         }
+
+        public IStateMachine StateMachine => _inner.StateMachine;
     }
 
     internal class RecurringJobsService : BackgroundService

@@ -162,7 +162,7 @@ namespace Hangfire
                     {
                         if (backgroundJob != null)
                         {
-                            _factory.StateMachine.EnqueueBackgroundJob(
+                            _factory.StateChanger.EnqueueBackgroundJob(
                                 _storage,
                                 connection,
                                 transaction,

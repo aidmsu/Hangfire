@@ -15,6 +15,7 @@ namespace Hangfire.Core.Tests.States
 
         private readonly Mock<IState> _newState;
         private readonly Mock<JobStorage> _storage;
+        private readonly Mock<IBackgroundJobStateChanger> _stateChanger;
         private readonly BackgroundJobMock _backgroundJob;
         private readonly Mock<IWriteOnlyTransaction> _transaction;
         private readonly Mock<IStorageConnection> _connection;
@@ -24,6 +25,7 @@ namespace Hangfire.Core.Tests.States
             _storage = new Mock<JobStorage>();
             _connection = new Mock<IStorageConnection>();
             _transaction = new Mock<IWriteOnlyTransaction>();
+            _stateChanger = new Mock<IBackgroundJobStateChanger>();
             _backgroundJob = new BackgroundJobMock();
             _newState = new Mock<IState>();
             _newState.Setup(x => x.Name).Returns(NewState);
@@ -33,7 +35,7 @@ namespace Hangfire.Core.Tests.States
         public void Ctor_ThrowsAnException_WhenStorageIsNull()
         {
             var exception = Assert.Throws<ArgumentNullException>(
-                () => new ApplyStateContext(null, _connection.Object, _transaction.Object, _backgroundJob.Object, _newState.Object, OldState));
+                () => new ApplyStateContext(null, _connection.Object, _transaction.Object, _stateChanger.Object, _backgroundJob.Object, _newState.Object, OldState));
 
             Assert.Equal("storage", exception.ParamName);
         }
@@ -43,7 +45,7 @@ namespace Hangfire.Core.Tests.States
         {
             var exception = Assert.Throws<ArgumentNullException>(
                 () =>
-                    new ApplyStateContext(_storage.Object, null, _transaction.Object, _backgroundJob.Object,
+                    new ApplyStateContext(_storage.Object, null, _transaction.Object, _stateChanger.Object, _backgroundJob.Object,
                         _newState.Object, OldState));
 
             Assert.Equal("connection", exception.ParamName);
@@ -54,7 +56,7 @@ namespace Hangfire.Core.Tests.States
         {
             var exception = Assert.Throws<ArgumentNullException>(
                 () =>
-                    new ApplyStateContext(_storage.Object, _connection.Object, null, _backgroundJob.Object, _newState.Object, OldState));
+                    new ApplyStateContext(_storage.Object, _connection.Object, null, _stateChanger.Object, _backgroundJob.Object, _newState.Object, OldState));
 
             Assert.Equal("transaction", exception.ParamName);
         }
@@ -63,7 +65,7 @@ namespace Hangfire.Core.Tests.States
         public void Ctor_ThrowsAnException_WhenBackgroundJobIsNull()
         {
             var exception = Assert.Throws<ArgumentNullException>(
-                () => new ApplyStateContext(_storage.Object, _connection.Object, _transaction.Object, null, _newState.Object, OldState));
+                () => new ApplyStateContext(_storage.Object, _connection.Object, _transaction.Object, _stateChanger.Object, null, _newState.Object, OldState));
 
             Assert.Equal("backgroundJob", exception.ParamName);
         }
@@ -72,7 +74,7 @@ namespace Hangfire.Core.Tests.States
         public void Ctor_ThrowsAnException_WhenNewStateIsNull()
         {
             var exception = Assert.Throws<ArgumentNullException>(
-                () => new ApplyStateContext(_storage.Object, _connection.Object, _transaction.Object, _backgroundJob.Object, null, OldState));
+                () => new ApplyStateContext(_storage.Object, _connection.Object, _transaction.Object, _stateChanger.Object, _backgroundJob.Object, null, OldState));
 
             Assert.Equal("newState", exception.ParamName);
         }
@@ -84,6 +86,7 @@ namespace Hangfire.Core.Tests.States
                 _storage.Object,
                 _connection.Object,
                 _transaction.Object,
+                _stateChanger.Object,
                 _backgroundJob.Object,
                 _newState.Object,
                 OldState);

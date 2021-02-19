@@ -45,7 +45,9 @@ namespace Hangfire.States
             _innerStateMachine = stateMachine ?? throw new ArgumentNullException(nameof(stateMachine));
             _stateMachine = new StateMachine(filterProvider, stateMachine);
         }
-        
+
+        public IStateMachine StateMachine => _stateMachine;
+
         public IState ChangeState(StateChangeContext context)
         {
             // To ensure that job state will be changed only from one of the
@@ -101,6 +103,7 @@ namespace Hangfire.States
                         context.Storage,
                         context.Connection,
                         transaction,
+                        this,
                         new BackgroundJob(context.BackgroundJobId, jobData.Job, jobData.CreatedAt),
                         stateToApply,
                         jobData.State,

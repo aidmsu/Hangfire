@@ -36,7 +36,6 @@ namespace Hangfire
 
         private readonly bool _pushResults;
         private readonly HashSet<string> _knownFinalStates;
-        private readonly IBackgroundJobStateChanger _stateChanger;
 
         public ContinuationsSupportAttribute()
             : this(false)
@@ -48,34 +47,21 @@ namespace Hangfire
         {
         }
 
-        public ContinuationsSupportAttribute(HashSet<string> knownFinalStates)
-            : this(false, knownFinalStates)
-        {
-        }
-
-        public ContinuationsSupportAttribute(bool pushResults, HashSet<string> knownFinalStates)
-            : this(pushResults, knownFinalStates, new BackgroundJobStateChanger())
-        {
-        }
-
+     
         public ContinuationsSupportAttribute(
-            [NotNull] HashSet<string> knownFinalStates,
-            [NotNull] IBackgroundJobStateChanger stateChanger)
-            : this(false, knownFinalStates, stateChanger)
+            [NotNull] HashSet<string> knownFinalStates)
+            : this(false, knownFinalStates)
         {
         }
 
         public ContinuationsSupportAttribute(
             bool pushResults,
-            [NotNull] HashSet<string> knownFinalStates, 
-            [NotNull] IBackgroundJobStateChanger stateChanger)
+            [NotNull] HashSet<string> knownFinalStates)
         {
             if (knownFinalStates == null) throw new ArgumentNullException(nameof(knownFinalStates));
-            if (stateChanger == null) throw new ArgumentNullException(nameof(stateChanger));
 
             _pushResults = pushResults;
             _knownFinalStates = knownFinalStates;
-            _stateChanger = stateChanger;
 
             // Ensure this filter is the last filter in the chain to start
             // continuations on the last candidate state only.
@@ -242,7 +228,7 @@ namespace Hangfire
                     context.Connection.SetJobParameter(tuple.Key, "AntecedentResult", antecedentResult);
                 }
 
-                _stateChanger.ChangeState(new StateChangeContext(
+                context.StateChanger.ChangeState(new StateChangeContext(
                     context.Storage,
                     context.Connection,
                     tuple.Key,

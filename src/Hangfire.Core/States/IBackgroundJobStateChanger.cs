@@ -24,5 +24,7 @@ namespace Hangfire.States
         /// <returns><c>Null</c> if a constraint has failed, otherwise the final applied state</returns>
         /// <remarks>Also ensures that the job data can be loaded for this job</remarks>
         IState ChangeState(StateChangeContext context);
+
+        IStateMachine StateMachine { get; }
     }
 }

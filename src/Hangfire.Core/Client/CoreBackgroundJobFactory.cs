@@ -33,14 +33,17 @@ namespace Hangfire.Client
         private int _retryAttempts;
         private Func<int, TimeSpan> _retryDelayFunc;
 
-        public CoreBackgroundJobFactory([NotNull] IStateMachine stateMachine)
+        public CoreBackgroundJobFactory([NotNull] IBackgroundJobStateChanger stateChanger)
         {
-            StateMachine = stateMachine ?? throw new ArgumentNullException(nameof(stateMachine));
+            StateChanger = stateChanger;
+            StateMachine = stateChanger.StateMachine;
             RetryAttempts = 0;
             RetryDelayFunc = GetRetryDelay;
         }
 
         public IStateMachine StateMachine { get; }
+
+        public IBackgroundJobStateChanger StateChanger { get; }
 
         public int RetryAttempts
         {
@@ -107,12 +110,13 @@ namespace Hangfire.Client
                             context.Storage,
                             context.Connection,
                             transaction,
+                            StateChanger,
                             backgroundJob,
                             context.InitialState,
                             oldStateName: null,
                             profiler: context.Profiler);
 
-                        StateMachine.ApplyState(applyContext);
+                        StateChanger.StateMachine.ApplyState(applyContext);
 
                         transaction.Commit();
                     }

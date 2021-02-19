@@ -35,7 +35,7 @@ namespace Hangfire.Client
         }
 
         public BackgroundJobFactory([NotNull] IJobFilterProvider filterProvider)
-            : this(filterProvider, new CoreBackgroundJobFactory(new StateMachine(filterProvider)))
+            : this(filterProvider, new CoreBackgroundJobFactory(new BackgroundJobStateChanger(JobFilterProviders.Providers, new StateMachine(filterProvider))))
         {
         }
 
@@ -71,6 +71,8 @@ namespace Hangfire.Client
         }
 
         public IStateMachine StateMachine => _innerFactory.StateMachine;
+
+        public IBackgroundJobStateChanger StateChanger => _innerFactory.StateChanger;
 
         public BackgroundJob Create(CreateContext context)
         {

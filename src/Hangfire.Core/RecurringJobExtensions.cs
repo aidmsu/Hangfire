@@ -128,7 +128,7 @@ namespace Hangfire
         }
 
         public static void EnqueueBackgroundJob(
-            [NotNull] this IStateMachine stateMachine,
+            [NotNull] this IBackgroundJobStateChanger stateChanger,
             [NotNull] JobStorage storage,
             [NotNull] IStorageConnection connection,
             [NotNull] IWriteOnlyTransaction transaction,
@@ -137,7 +137,7 @@ namespace Hangfire
             [CanBeNull] string reason,
             [NotNull] IProfiler profiler)
         {
-            if (stateMachine == null) throw new ArgumentNullException(nameof(stateMachine));
+            if (stateChanger == null) throw new ArgumentNullException(nameof(stateChanger));
             if (storage == null) throw new ArgumentNullException(nameof(storage));
             if (connection == null) throw new ArgumentNullException(nameof(connection));
             if (transaction == null) throw new ArgumentNullException(nameof(transaction));
@@ -152,10 +152,11 @@ namespace Hangfire
                 state.Queue = recurringJob.Queue;
             }
 
-            stateMachine.ApplyState(new ApplyStateContext(
+            stateChanger.StateMachine.ApplyState(new ApplyStateContext(
                 storage,
                 connection,
                 transaction,
+                stateChanger,
                 backgroundJob,
                 state,
                 null,

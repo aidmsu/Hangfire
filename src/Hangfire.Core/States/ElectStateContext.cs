@@ -41,6 +41,7 @@ namespace Hangfire.States
             Storage = applyContext.Storage;
             Connection = applyContext.Connection;
             Transaction = applyContext.Transaction;
+            StateChanger = applyContext.StateChanger;
             CurrentState = applyContext.OldStateName;
             Profiler = applyContext.Profiler;
         }
@@ -55,6 +56,9 @@ namespace Hangfire.States
 
         [NotNull]
         public IWriteOnlyTransaction Transaction { get; }
+
+        [NotNull]
+        public IBackgroundJobStateChanger StateChanger { get; set; }
 
         [NotNull]
         public IState CandidateState

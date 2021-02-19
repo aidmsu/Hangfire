@@ -14,6 +14,7 @@ namespace Hangfire.Core.Tests
             Storage = new Mock<JobStorage>();
             Connection = new Mock<IStorageConnection>();
             Transaction = new Mock<IWriteOnlyTransaction>();
+            StateChanger = new Mock<IBackgroundJobStateChanger>();
             BackgroundJob = new BackgroundJobMock();
             NewState = new Mock<IState>();
             OldStateName = null;
@@ -24,6 +25,7 @@ namespace Hangfire.Core.Tests
                     Storage.Object,
                     Connection.Object,
                     Transaction.Object,
+                    StateChanger.Object,
                     BackgroundJob.Object,
                     NewStateObject ?? NewState.Object,
                     OldStateName)
@@ -35,6 +37,7 @@ namespace Hangfire.Core.Tests
         public Mock<JobStorage> Storage { get; set; }
         public Mock<IStorageConnection> Connection { get; set; } 
         public Mock<IWriteOnlyTransaction> Transaction { get; set; } 
+        public Mock<IBackgroundJobStateChanger> StateChanger { get; set; } 
         public BackgroundJobMock BackgroundJob { get; set; } 
         public IState NewStateObject { get; set; }
         public Mock<IState> NewState { get; set; }

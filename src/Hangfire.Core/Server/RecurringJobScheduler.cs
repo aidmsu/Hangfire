@@ -22,6 +22,7 @@ using Hangfire.Client;
 using Hangfire.Common;
 using Hangfire.Logging;
 using Hangfire.Profiling;
+using Hangfire.States;
 using Hangfire.Storage;
 
 namespace Hangfire.Server
@@ -73,6 +74,7 @@ namespace Hangfire.Server
         private readonly ConcurrentDictionary<Type, bool> _isBatchingAvailableCache = new ConcurrentDictionary<Type, bool>();
 
         private readonly IBackgroundJobFactory _factory;
+        private readonly IBackgroundJobStateChanger _stateChanger;
         private readonly Func<DateTime> _nowFactory;
         private readonly ITimeZoneResolver _timeZoneResolver;
         private readonly TimeSpan _pollingDelay;
@@ -96,7 +98,7 @@ namespace Hangfire.Server
         /// <exception cref="ArgumentNullException"><paramref name="factory"/> is null.</exception>
         public RecurringJobScheduler(
             [NotNull] IBackgroundJobFactory factory)
-            : this(factory, TimeSpan.Zero)
+            : this(factory, new BackgroundJobStateChanger(), TimeSpan.Zero)
         {
         }
 
@@ -109,8 +111,9 @@ namespace Hangfire.Server
         /// <exception cref="ArgumentNullException"><paramref name="factory"/> is null.</exception>
         public RecurringJobScheduler(
             [NotNull] IBackgroundJobFactory factory,
+            [NotNull] IBackgroundJobStateChanger stateChanger,
             TimeSpan pollingDelay)
-            : this(factory, pollingDelay, new DefaultTimeZoneResolver())
+            : this(factory, pollingDelay, stateChanger, new DefaultTimeZoneResolver())
         {
         }
 
@@ -119,6 +122,7 @@ namespace Hangfire.Server
         /// with custom background job factory, state machine and clocks.
         /// </summary>
         /// <param name="factory">Factory that will be used to create background jobs.</param>
+        /// <param name="stateChanger"></param>
         /// <param name="pollingDelay">Delay before another polling attempt, when no jobs scheduled yet.</param>
         /// <param name="timeZoneResolver">Function that returns a time zone object by its identifier.</param>
         /// <exception cref="ArgumentNullException"><paramref name="factory"/> is null.</exception>
@@ -126,14 +130,16 @@ namespace Hangfire.Server
         public RecurringJobScheduler(
             [NotNull] IBackgroundJobFactory factory,
             TimeSpan pollingDelay,
+            [NotNull] IBackgroundJobStateChanger stateChanger,
             [NotNull] ITimeZoneResolver timeZoneResolver)
-            : this(factory, pollingDelay, timeZoneResolver, () => DateTime.UtcNow)
+            : this(factory, pollingDelay, stateChanger, timeZoneResolver, () => DateTime.UtcNow)
         {
         }
 
         public RecurringJobScheduler(
             [NotNull] IBackgroundJobFactory factory,
             TimeSpan pollingDelay,
+            [NotNull] IBackgroundJobStateChanger stateChanger,
             [NotNull] ITimeZoneResolver timeZoneResolver,
             [NotNull] Func<DateTime> nowFactory)
         {
@@ -142,6 +148,7 @@ namespace Hangfire.Server
             if (timeZoneResolver == null) throw new ArgumentNullException(nameof(timeZoneResolver));
 
             _factory = factory;
+            _stateChanger = stateChanger;
             _nowFactory = nowFactory;
             _timeZoneResolver = timeZoneResolver;
             _pollingDelay = pollingDelay;
@@ -302,7 +309,7 @@ namespace Hangfire.Server
 
                     if (backgroundJob != null)
                     {
-                        _factory.StateMachine.EnqueueBackgroundJob(
+                        _stateChanger.EnqueueBackgroundJob(
                             context.Storage,
                             connection,
                             transaction,
